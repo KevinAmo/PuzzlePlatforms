@@ -17,11 +17,26 @@ class PUZZLEPLATFORMS_API AMovingPlatform : public AStaticMeshActor
 public:
 	AMovingPlatform();
 	
-protected:
+	virtual void BeginPlay() override;
 
 	virtual void Tick(float deltaTime) override;
 	
 	UPROPERTY(EditAnywhere)
 	float Speed = 20.f;
+
+	UPROPERTY(EditAnywhere, Meta = (MakeEditWidget = true))
+	FVector TargetLocation;
+
+	void AddActiveTrigger();
+	void RemoveActiveTrigger();
+
+private:
+
+	FVector GlobalTargetLocation;
+
+	FVector GlobalStartLocation;
+
+	UPROPERTY(EditAnywhere)
+	int32 ActiveTriggers = 1;
 
 };
