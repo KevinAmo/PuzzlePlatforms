@@ -21,7 +21,7 @@ bool UMainMenu::Initialize()
 	if(!Succes) { return false; }
 
 	if(!HostButton) { return false; }
-	HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+	HostButton->OnClicked.AddDynamic(this, &UMainMenu::OpenHostMenu);
 
 	if(!JoinButton) { return false; }
 	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
@@ -35,18 +35,36 @@ bool UMainMenu::Initialize()
 	if(!ConfirmJoinMenuButton) { return false; }
 	ConfirmJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
 
+	if(!CancelHostMenuButton) { return false; }
+	CancelHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
+
+	if(!ConfirmHostMenuButton) { return false; }
+	ConfirmHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+
 	return true;
+}
+
+void UMainMenu::OpenHostMenu()
+{
+	if(MenuSwitcher != nullptr)
+	{
+		if(HostMenu != nullptr)
+		{
+			MenuSwitcher->SetActiveWidget(HostMenu);
+		}
+	}
 }
 
 void UMainMenu::HostServer()
 {
 	if(MenuInterface != nullptr)
 	{
-		MenuInterface->Host();
+		FString ServerName = ServerHostName->Text.ToString();
+		MenuInterface->Host(ServerName);
 	}
 }
 
-void UMainMenu::SetServerList(TArray<FString> ServerNames)
+void UMainMenu::SetServerList(TArray<FServerData> ServerDatas)
 {
 
 	UWorld* World = this->GetWorld();
@@ -55,12 +73,15 @@ void UMainMenu::SetServerList(TArray<FString> ServerNames)
 	ServerList->ClearChildren();
 	uint32 i = 0;
 
-	for(const FString& ServerName : ServerNames)
+	for(const FServerData& ServerData : ServerDatas)
 	{
 		UServerRow* Row = CreateWidget<UServerRow>(World, ServerRowClass);
 		if(!Row) { return; }
 
-		Row->ServerName->SetText(FText::FromString(ServerName));
+		Row->ServerName->SetText(FText::FromString(ServerData.Name));
+		Row->HostUser->SetText(FText::FromString(ServerData.HostUsername));
+		FString FractionText = FString::Printf(TEXT("%d/%d"), ServerData.CurrentPlayers, ServerData.MaxPlayers);
+		Row->ConnectionFraction->SetText(FText::FromString(FractionText));
 		Row->Setup(this, i);
 		++i;
 		ServerList->AddChild(Row);
